@@ -26,6 +26,8 @@
 #include "sherpa-onnx/csrc/online-zipformer-transducer-model.h"
 #include "sherpa-onnx/csrc/online-zipformer2-transducer-model.h"
 #include "sherpa-onnx/csrc/onnx-utils.h"
+#include "sherpa-onnx/csrc/ModelData.h"
+#include "sherpa-onnx/csrc/license.h"
 
 namespace {
 
@@ -41,6 +43,99 @@ enum class ModelType : std::uint8_t {
 }  // namespace
 
 namespace sherpa_onnx {
+
+#ifdef KROKO_MODEL
+#ifdef KROKO_LICENSE
+std::atomic<uint64_t> total_duration = 0;
+std::atomic<bool> license_status = false;
+std::atomic<uint64_t> total_connections = 0;
+std::atomic<int32_t> num_max_connections = 0;
+
+void* check_license(void* ptr) {
+    std::string* arr = (std::string*)ptr;
+    LicenseClient& client = LicenseState::getInstance();
+
+    while (true) {
+        sleep(client.report_interval);
+        uint64_t duration = sherpa_onnx::total_duration / 1000;
+
+        // Ensure we don’t overuse the license
+        if (duration > client.remaining_seconds) {
+            duration = client.remaining_seconds;
+        }
+
+        bool ok = client.send_usage_report(duration);
+
+        if (!ok) {
+            std::cerr << "❌ License reporting failed: " << client.error_message << std::endl;
+        } else {
+            sherpa_onnx::license_status = true;
+        }
+
+        if(!client.allowed) {
+          sherpa_onnx::license_status = false;
+          exit(1);
+        }
+
+        sherpa_onnx::total_duration = 0;
+    }
+
+    return nullptr;
+}
+#endif
+
+void BanafoLoadModel(const OnlineModelConfig &config) {
+#ifdef KROKO_LICENSE
+    auto& model = ModelData::getInstance();
+    if (!model.loadHeader(config.model_path)) {
+      std::cerr << "Failed to load model header." << std::endl;
+      exit(1);
+    }
+
+    if(model.getHeaderValue("free") == "false") {
+      auto& banafo = BanafoLicense::getInstance(config.key, model.getHeaderValue("id"), config.referralcode);
+      pthread_t license_th;
+      int license;
+
+      while(!banafo.mActivationFinished)
+      {
+        sleep(1);
+      }
+      if(!banafo.mActivated) {
+        exit(1);
+      }
+
+      sherpa_onnx::license_status = true;
+      license = pthread_create(&license_th, NULL, check_license, NULL);
+      pthread_detach(license);
+
+      auto& client = LicenseState::getInstance();
+    
+      if (!model.decryptPayload(client.password)) {
+        std::cerr << "Failed to decrypt payload." << std::endl;
+        exit(1);
+      }
+    }
+    else {
+      sherpa_onnx::license_status = true;
+      if (!model.loadPayload()) {
+        std::cerr << "Failed to load the payload." << std::endl;
+        exit(1);
+      }
+    }
+#else
+    auto& model = ModelData::getInstance();
+    if (!model.loadHeader(config.model_path)) {
+        std::cerr << "Failed to load model header." << std::endl;
+        exit(1);
+    }
+    if (!model.loadPayload()) {
+      std::cerr << "Failed to load the payload." << std::endl;
+      exit(1);
+    }
+#endif
+}
+#endif
 
 static ModelType GetModelType(char *model_data, size_t model_data_length,
                               bool debug) {
@@ -92,8 +187,18 @@ static ModelType GetModelType(char *model_data, size_t model_data_length,
 
 std::unique_ptr<OnlineTransducerModel> OnlineTransducerModel::Create(
     const OnlineModelConfig &config) {
+#ifdef KROKO_MODEL      
+  BanafoLoadModel(config);
+  auto& model = ModelData::getInstance();
+#endif
+
+#ifdef KROKO_MODEL
+  {
+    const auto &model_type = model.getHeaderValue("type");
+#else
   if (!config.model_type.empty()) {
     const auto &model_type = config.model_type;
+#endif    
     if (model_type == "conformer") {
       return std::make_unique<OnlineConformerTransducerModel>(config);
     } else if (model_type == "ebranchformer") {
@@ -175,6 +280,10 @@ Ort::Value OnlineTransducerModel::BuildDecoderInput(
 template <typename Manager>
 std::unique_ptr<OnlineTransducerModel> OnlineTransducerModel::Create(
     Manager *mgr, const OnlineModelConfig &config) {
+#ifdef KROKO_MODEL      
+  BanafoLoadModel(config);
+#endif
+
   if (!config.model_type.empty()) {
     const auto &model_type = config.model_type;
     if (model_type == "conformer") {

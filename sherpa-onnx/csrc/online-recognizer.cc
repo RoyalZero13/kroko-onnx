@@ -26,59 +26,128 @@
 #include "sherpa-onnx/csrc/online-recognizer-impl.h"
 #include "sherpa-onnx/csrc/text-utils.h"
 
+#include <thread>
+#include <map>
+#include <functional>
+#include <bits/stdc++.h>
+#include<iostream>
+#include<algorithm>
+
 namespace sherpa_onnx {
 
-namespace {
-
-/// Helper for `OnlineRecognizerResult::AsJsonString()`
-template <typename T>
-std::string VecToString(const std::vector<T> &vec, int32_t precision = 6) {
-  std::ostringstream oss;
-  if (precision != 0) {
-    oss << std::fixed << std::setprecision(precision);
-  }
-  oss << "[";
-  std::string sep = "";
-  for (const auto &item : vec) {
-    oss << sep << item;
-    sep = ", ";
-  }
-  oss << "]";
-  return oss.str();
+  std::string escape_json_online(const std::string &s) {
+    std::ostringstream o;
+    for (auto c = s.cbegin(); c != s.cend(); c++) {
+        switch (*c) {
+        case '"': o << "\\\""; break;
+        case '\\': o << "\\\\"; break;
+        case '\b': o << "\\b"; break;
+        case '\f': o << "\\f"; break;
+        case '\n': o << "\\n"; break;
+        case '\r': o << "\\r"; break;
+        case '\t': o << "\\t"; break;
+        default:
+            if ('\x00' <= *c && *c <= '\x1f') {
+                o << "\\u"
+                  << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(*c);
+            } else {
+                o << *c;
+            }
+        }
+    }
+    return o.str();
 }
-
-/// Helper for `OnlineRecognizerResult::AsJsonString()`
-template <>  // explicit specialization for T = std::string
-std::string VecToString<std::string>(const std::vector<std::string> &vec,
-                                     int32_t) {  // ignore 2nd arg
-  std::ostringstream oss;
-  oss << "[";
-  std::string sep = "";
-  for (const auto &item : vec) {
-    oss << sep << std::quoted(item);
-    sep = ", ";
-  }
-  oss << "]";
-  return oss.str();
-}
-
-}  // namespace
 
 std::string OnlineRecognizerResult::AsJsonString() const {
+  std::string mergedText = text;
+
+  std::vector<std::string> words_text;
+  std::vector<float> words_timestamps;
+  try {
+  if(tokens.size() > 0) {
+      std::string word = tokens[0];
+      float word_timestamp = timestamps[0];
+      if(tokens.size() == 1) {
+        words_text.push_back(word);
+        words_timestamps.push_back(word_timestamp);
+      }
+      for(int i = 1; i < tokens.size(); i++) {
+        if(tokens[i].find_first_of(" ") == 0) {
+          if(word.find_first_of(" ") == 0) {
+            word = word.erase(0, 1);
+          }
+          words_text.push_back(word);
+          words_timestamps.push_back(word_timestamp);
+          word = tokens[i];
+          word_timestamp = timestamps[i];
+        }
+        else {
+          word += tokens[i];
+        }
+        if(i == tokens.size() - 1) {
+          if(word.find_first_of(" ") == 0) {
+            word = word.erase(0, 1);
+          }
+          words_text.push_back(word);
+          words_timestamps.push_back(word_timestamp);
+        }
+      }
+  }
+  } catch (const std::exception& e) {}
+
   std::ostringstream os;
-  os << "{ ";
-  os << "\"text\": " << std::quoted(text) << ", ";
-  os << "\"tokens\": " << VecToString(tokens) << ", ";
-  os << "\"timestamps\": " << VecToString(timestamps, 2) << ", ";
-  os << "\"ys_probs\": " << VecToString(ys_probs, 6) << ", ";
-  os << "\"lm_probs\": " << VecToString(lm_probs, 6) << ", ";
-  os << "\"context_scores\": " << VecToString(context_scores, 6) << ", ";
-  os << "\"segment\": " << segment << ", ";
-  os << "\"words\": " << VecToString(words, 0) << ", ";
-  os << "\"start_time\": " << std::fixed << std::setprecision(2) << start_time
+  os << "{";
+  os << "\"text\""
+     << ": ";
+  os << "\"" << escape_json_online(mergedText) << "\""
      << ", ";
-  os << "\"is_final\": " << (is_final ? "true" : "false") << ", ";
-  os << "\"is_eof\": " << (is_eof ? "true" : "false");
+  if(is_final) {
+    os << "\"type\": \"final\", ";
+  }
+  else {
+    os << "\"type\": \"partial\", ";
+  }
+  os << "\"startedAt\": " << start_time << ", ";
+  os << "\"segment\": " << segment << ", ";
+
+  os << "\"elements\": {";
+
+  os << "\"segments\": [";
+  os << "{";
+  os << "\"text\""
+   << ": ";
+  os << "\"" << escape_json_online(mergedText) << "\"" << ", ";
+  os << "\"type\": \"segment\", ";
+  os << "\"startedAt\": " << start_time << ", ";
+  os << "\"segment\": " << segment;
+  os << "}";
+  os << "], "; //segments
+
+  std::string sep = "";
+  double prev_timestamp = 0;
+  os << "\"words\": [";
+  for(int i = 0; i < words_text.size(); i ++) {
+    double timestamp = words_timestamps[i];
+    if(timestamp <= prev_timestamp) {
+      timestamp = prev_timestamp + 0.01;
+    }
+    prev_timestamp = timestamp;
+    os << sep;
+    os << "{";
+    os << "\"text\""
+     << ": ";
+    os << "\"" << escape_json_online(words_text[i]) << "\""
+      << ", ";
+    os << "\"type\": \"word\", ";
+    os << "\"startedAt\": " << timestamp + start_time << ", ";
+    os << "\"segment\": " << segment;
+    os << "}";
+    sep = ", ";
+  }
+  os << "]"; //words
+
+  os << "}"; //elements
+
   os << "}";
   return os.str();
 }
@@ -89,7 +158,7 @@ void OnlineRecognizerConfig::Register(ParseOptions *po) {
   endpoint_config.Register(po);
   lm_config.Register(po);
   ctc_fst_decoder_config.Register(po);
-  hr.Register(po);
+
 
   po->Register("enable-endpoint", &enable_endpoint,
                "True to enable endpoint detection. False to disable it.");

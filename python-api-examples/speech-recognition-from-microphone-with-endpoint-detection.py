@@ -4,7 +4,8 @@
 # with endpoint detection.
 #
 # Please refer to
-# https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
+# https://app.kroko.ai - Pro models
+# https://huggingface.co/Banafo/Kroko-ASR - Free models
 # to download pre-trained models
 
 import argparse
@@ -21,14 +22,14 @@ except ImportError:
     print("to install it")
     sys.exit(-1)
 
-import sherpa_onnx
+import kroko_onnx
 
 
 def assert_file_exists(filename: str):
     assert Path(filename).is_file(), (
         f"{filename} does not exist!\n"
         "Please refer to "
-        "https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html to download it"
+        "https://app.kroko.ai or https://huggingface.co/Banafo/Kroko-ASR to download it"
     )
 
 
@@ -38,31 +39,23 @@ def get_args():
     )
 
     parser.add_argument(
-        "--tokens",
+        "--model",
         type=str,
-        required=True,
-        help="Path to tokens.txt",
+        help="Path to the kroko model",
     )
 
     parser.add_argument(
-        "--encoder",
+        "--key",
         type=str,
-        required=True,
-        help="Path to the encoder model",
+        default="",
+        help="License key needed only for Pro models",
     )
 
     parser.add_argument(
-        "--decoder",
+        "--referralcode",
         type=str,
-        required=True,
-        help="Path to the decoder model",
-    )
-
-    parser.add_argument(
-        "--joiner",
-        type=str,
-        required=True,
-        help="Path to the joiner model",
+        default="",
+        help="Project referral code - for future revenue sharing options. Contact us for info.",
     )
 
     parser.add_argument(
@@ -114,58 +107,32 @@ def get_args():
         """,
     )
 
-    parser.add_argument(
-        "--hr-dict-dir",
-        type=str,
-        default="",
-        help="If not empty, it is the jieba dict directory for homophone replacer",
-    )
-
-    parser.add_argument(
-        "--hr-lexicon",
-        type=str,
-        default="",
-        help="If not empty, it is the lexicon.txt for homophone replacer",
-    )
-
-    parser.add_argument(
-        "--hr-rule-fsts",
-        type=str,
-        default="",
-        help="If not empty, it is the replace.fst for homophone replacer",
-    )
-
     return parser.parse_args()
 
 
 def create_recognizer(args):
-    assert_file_exists(args.encoder)
-    assert_file_exists(args.decoder)
-    assert_file_exists(args.joiner)
-    assert_file_exists(args.tokens)
+    assert_file_exists(args.model)
     # Please replace the model files if needed.
     # See https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
     # for download links.
-    recognizer = sherpa_onnx.OnlineRecognizer.from_transducer(
-        tokens=args.tokens,
-        encoder=args.encoder,
-        decoder=args.decoder,
-        joiner=args.joiner,
-        num_threads=1,
+    recognizer = kroko_onnx.OnlineRecognizer.from_transducer(
+        model_path=args.model,
+        key=args.key,
+        referralcode=args.referralcode,
+        num_threads=args.num_threads,
+        provider=args.provider,
         sample_rate=16000,
         feature_dim=80,
+        decoding_method=args.decoding_method,
+        max_active_paths=args.max_active_paths,
+        hotwords_file=args.hotwords_file,
+        hotwords_score=args.hotwords_score,
+        modeling_unit=args.modeling_unit,
+        blank_penalty=args.blank_penalty,
         enable_endpoint_detection=True,
         rule1_min_trailing_silence=2.4,
         rule2_min_trailing_silence=1.2,
         rule3_min_utterance_length=300,  # it essentially disables this rule
-        decoding_method=args.decoding_method,
-        provider=args.provider,
-        hotwords_file=args.hotwords_file,
-        hotwords_score=args.hotwords_score,
-        blank_penalty=args.blank_penalty,
-        hr_dict_dir=args.hr_dict_dir,
-        hr_rule_fsts=args.hr_rule_fsts,
-        hr_lexicon=args.hr_lexicon,
     )
     return recognizer
 
@@ -192,7 +159,7 @@ def main():
 
     stream = recognizer.create_stream()
 
-    display = sherpa_onnx.Display()
+    display = kroko_onnx.Display()
 
     with sd.InputStream(channels=1, dtype="float32", samplerate=sample_rate) as s:
         while True:

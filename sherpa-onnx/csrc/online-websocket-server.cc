@@ -6,43 +6,120 @@
 #include "sherpa-onnx/csrc/macros.h"
 #include "sherpa-onnx/csrc/online-websocket-server-impl.h"
 #include "sherpa-onnx/csrc/parse-options.h"
+#include "sherpa-onnx/csrc/httplib.h"
 
-static constexpr const char *kUsageMessage = R"(
-Automatic speech recognition with sherpa-onnx using websocket.
+const char* banafo_help = R"(
 
+Automatic speech recognition using websocket.
 Usage:
 
-./bin/sherpa-onnx-online-websocket-server --help
+./kroko-onnx-online-websocket-server --help
+./kroko-onnx-online-websocket-server\
+  --port=6006\
+  --model=model.data
+  
+Thank you for using Kroko! 🎉
 
-./bin/sherpa-onnx-online-websocket-server \
-  --port=6006 \
-  --num-work-threads=5 \
-  --tokens=/path/to/tokens.txt \
-  --encoder=/path/to/encoder.onnx \
-  --decoder=/path/to/decoder.onnx \
-  --joiner=/path/to/joiner.onnx \
-  --log-file=./log.txt \
-  --max-batch-size=5 \
-  --loop-interval-ms=10
+This project is open source and can be freely used under the open source license.
+For users who need commercial features, support, or access to paid models, we also offer a commercial license.
 
-Please refer to
-https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
-for a list of pre-trained models to download.
+📦 Downloading Free Models
+
+You can download them from:
+
+👉 https://huggingface.co/Banafo/Kroko-ASR
+
+🔑 Getting a Trial License
+
+Go to https://app.kroko.ai/
+Register or Log in to your account.
+In the sidebar, click On-premise.
+Click the GET trial button.
+You will receive a license key.
+Once you have the key, run the executable with the activation command:
+
+./kroko-onnx-online-websocket-server --key=YOUR_LICENSE_KEY --model=DOWNLOADED_KROKO_MODEL
+
+📦 Downloading Paid Models
+
+Paid models are available only for commercial license users.
+You can download them from:
+
+👉 https://app.kroko.ai/on-premise
+
+After downloading, place the models in the appropriate directory (for example: models/).
 )";
 
+#ifdef KROKO_LICENSE 
+void* http_thread(void* ptr) {
+  try {
+    httplib::Server svr;
+
+    svr.Get("/health", [](const httplib::Request&, httplib::Response& res) {
+      res.set_content("", "text/plain");
+    });
+
+    svr.Get("/metrics", [](const httplib::Request&, httplib::Response& res) {
+      char buf[100];
+      std::time_t t = std::time(nullptr);
+      std::tm tm = *std::gmtime(&t); // Convert to GMT/UTC time
+      std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm);
+      std::string date = std::string(buf);
+      res.set_header("Date", date);
+      std::string msg = "# HELP decoder_connections Amount of active connections\n# TYPE decoder_connections gauge\ndecoder_connections " + std::to_string(sherpa_onnx::total_connections) + "\n";
+      res.set_content(msg, "text/plain; version=0.0.4");
+    });
+
+    svr.Get("/ready", [](const httplib::Request&, httplib::Response& res) {
+      if(sherpa_onnx::num_max_connections == 0 || sherpa_onnx::total_connections < sherpa_onnx::num_max_connections) {
+        res.set_content("", "text/plain");
+      }
+      else {
+        res.set_content("", "text/plain");
+        res.status = 503;
+      }
+    });
+
+    sleep(5);
+    svr.listen("0.0.0.0", *(int32_t*)ptr);
+  } catch(std::exception& e)
+  {
+      std::cerr << e.what();
+      exit(1);
+  }
+  return NULL;
+}
+#endif
+
+static const std::string kUsageMessage = "Automatic speech recognition using websocket.\n"
+        "Usage:\n\n"
+        "./onnx-online-websocket-server --help\n\n"
+        "./onnx-online-websocket-server \\\n"
+        "  --port=6006 \\\n"
+        "  --num-work-threads=5 \\\n"
+        "  --loop-interval-ms=10\n";
+
 int32_t main(int32_t argc, char *argv[]) {
-  sherpa_onnx::ParseOptions po(kUsageMessage);
+#ifndef KROKO_MODEL  
+  sherpa_onnx::ParseOptions po(kUsageMessage.c_str());
+#else
+  sherpa_onnx::ParseOptions po(banafo_help);
+#endif
 
   sherpa_onnx::OnlineWebsocketServerConfig config;
 
   // the server will listen on this port
   int32_t port = 6006;
+  int32_t metrics_port = 0;
+  int32_t num_max_conn = 0;
 
   // size of the thread pool for handling network connections
   int32_t num_io_threads = 1;
 
   // size of the thread pool for neural network computation and decoding
   int32_t num_work_threads = 3;
+
+  std::string key;
 
   po.Register("num-io-threads", &num_io_threads,
               "Thread pool size for network connections.");
@@ -52,6 +129,8 @@ int32_t main(int32_t argc, char *argv[]) {
               "computation and decoding.");
 
   po.Register("port", &port, "The port on which the server will listen.");
+
+  po.Register("metrics_port", &metrics_port, "The port on which the server will listen for metrics API. Requires Scaling feature license.");
 
   config.Register(&po);
 
@@ -68,8 +147,14 @@ int32_t main(int32_t argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  if(port == metrics_port) {
+    SHERPA_ONNX_LOGE("Both port and metrics_port can't be the same!");
+    exit(EXIT_FAILURE);
+  }
+
   config.Validate();
 
+  pthread_t http_th;
   asio::io_context io_conn;  // for network connections
   asio::io_context io_work;  // for neural network and decoding
 
@@ -79,6 +164,12 @@ int32_t main(int32_t argc, char *argv[]) {
   SHERPA_ONNX_LOGE("Started!");
   SHERPA_ONNX_LOGE("Listening on: %d", port);
   SHERPA_ONNX_LOGE("Number of work threads: %d", num_work_threads);
+
+#ifdef KROKO_LICENSE 
+  if(metrics_port > 0) {
+    http_th = pthread_create(&http_th, NULL, http_thread, &metrics_port);
+  }
+#endif  
 
   // give some work to do for the io_work pool
   auto work_guard = asio::make_work_guard(io_work);
@@ -104,6 +195,12 @@ int32_t main(int32_t argc, char *argv[]) {
   for (auto &t : work_threads) {
     t.join();
   }
+
+#ifdef KROKO_LICENSE 
+  if(metrics_port > 0) {
+    pthread_join(http_th, NULL);
+  }
+#endif  
 
   return 0;
 }

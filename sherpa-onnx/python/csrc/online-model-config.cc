@@ -37,6 +37,9 @@ void PybindOnlineModelConfig(py::module *m) {
                     const ProviderConfig &,
                     const std::string &, int32_t, int32_t,
                     bool, const std::string &, const std::string &,
+                    const std::string &,
+		                const std::string &,
+                    const std::string &,
                     const std::string &>(),
            py::arg("transducer") = OnlineTransducerModelConfig(),
            py::arg("paraformer") = OnlineParaformerModelConfig(),
@@ -46,7 +49,10 @@ void PybindOnlineModelConfig(py::module *m) {
            py::arg("provider_config") = ProviderConfig(),
            py::arg("tokens"), py::arg("num_threads"), py::arg("warm_up") = 0,
            py::arg("debug") = false, py::arg("model_type") = "",
-           py::arg("modeling_unit") = "", py::arg("bpe_vocab") = "")
+           py::arg("modeling_unit") = "", py::arg("bpe_vocab") = "",
+           py::arg("model_path") = "",
+           py::arg("key") = "",
+           py::arg("referralcode") = "")
       .def_readwrite("transducer", &PyClass::transducer)
       .def_readwrite("paraformer", &PyClass::paraformer)
       .def_readwrite("wenet_ctc", &PyClass::wenet_ctc)
@@ -61,6 +67,9 @@ void PybindOnlineModelConfig(py::module *m) {
       .def_readwrite("modeling_unit", &PyClass::modeling_unit)
       .def_readwrite("bpe_vocab", &PyClass::bpe_vocab)
       .def("validate", &PyClass::Validate)
-      .def("__str__", &PyClass::ToString);
+      .def("__str__", &PyClass::ToString)
+      .def_readwrite("model_path", &PyClass::model_path)
+      .def_readwrite("key", &PyClass::key)
+      .def_readwrite("referralcode", &PyClass::referralcode);
 }
 }  // namespace sherpa_onnx

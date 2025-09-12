@@ -39,7 +39,7 @@ option(SHERPA_ONNX_ENABLE_PORTAUDIO "Whether to build with portaudio" ON)
 option(SHERPA_ONNX_ENABLE_JNI "Whether to build JNI internface" OFF)
 option(SHERPA_ONNX_ENABLE_C_API "Whether to build C API" ON)
 option(SHERPA_ONNX_ENABLE_WEBSOCKET "Whether to build webscoket server/client" ON)
-option(SHERPA_ONNX_ENABLE_GPU "Enable ONNX Runtime GPU support" OFF)
+option(SHERPA_ONNX_ENABLE_GPU "Enable ONNX Runtime GPU support" ON)
 option(SHERPA_ONNX_ENABLE_DIRECTML "Enable ONNX Runtime DirectML support" OFF)
 option(SHERPA_ONNX_LINK_D3D "Whether static ONNX runtime lib with DML" OFF)
 
@@ -371,7 +371,7 @@ set(ONNXRUNTIME_DIR ${onnxruntime_SOURCE_DIR})
 message(STATUS "ONNXRUNTIME_DIR: ${ONNXRUNTIME_DIR}")
 
 if(SHERPA_ONNX_ENABLE_PORTAUDIO AND SHERPA_ONNX_ENABLE_BINARY)
-  # portaudio is used only in building demo binaries and the sherpa-onnx-core
+  # portaudio is used only in building demo binaries and the kroko-onnx-core
   # library does not depend on it.
   include(portaudio)
 endif()

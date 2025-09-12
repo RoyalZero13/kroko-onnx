@@ -6,82 +6,14 @@ file(s) with a streaming model.
 
 Usage:
 
-(1) Streaming transducer
-
-curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-zipformer-en-2023-06-26.tar.bz2
-tar xvf sherpa-onnx-streaming-zipformer-en-2023-06-26.tar.bz2
-rm sherpa-onnx-streaming-zipformer-en-2023-06-26.tar.bz2
-
 ./python-api-examples/online-decode-files.py \
-  --tokens=./sherpa-onnx-streaming-zipformer-en-2023-06-26/tokens.txt \
-  --encoder=./sherpa-onnx-streaming-zipformer-en-2023-06-26/encoder-epoch-99-avg-1-chunk-16-left-64.onnx \
-  --decoder=./sherpa-onnx-streaming-zipformer-en-2023-06-26/decoder-epoch-99-avg-1-chunk-16-left-64.onnx \
-  --joiner=./sherpa-onnx-streaming-zipformer-en-2023-06-26/joiner-epoch-99-avg-1-chunk-16-left-64.onnx \
-  ./sherpa-onnx-streaming-zipformer-en-2023-06-26/test_wavs/0.wav \
-  ./sherpa-onnx-streaming-zipformer-en-2023-06-26/test_wavs/1.wav \
-  ./sherpa-onnx-streaming-zipformer-en-2023-06-26/test_wavs/8k.wav
-
-or with RNN LM rescoring and LODR:
-
-./python-api-examples/online-decode-files.py \
-  --tokens=./sherpa-onnx-streaming-zipformer-en-2023-06-26/tokens.txt \
-  --encoder=./sherpa-onnx-streaming-zipformer-en-2023-06-26/encoder-epoch-99-avg-1-chunk-16-left-64.onnx \
-  --decoder=./sherpa-onnx-streaming-zipformer-en-2023-06-26/decoder-epoch-99-avg-1-chunk-16-left-64.onnx \
-  --joiner=./sherpa-onnx-streaming-zipformer-en-2023-06-26/joiner-epoch-99-avg-1-chunk-16-left-64.onnx \
-  --decoding-method=modified_beam_search \
-  --lm=/path/to/lm.onnx \
-  --lm-scale=0.1 \
-  --lodr-fst=/path/to/lodr.fst \
-  --lodr-scale=-0.1 \
-  ./sherpa-onnx-streaming-zipformer-en-2023-06-26/test_wavs/0.wav \
-  ./sherpa-onnx-streaming-zipformer-en-2023-06-26/test_wavs/1.wav \
-  ./sherpa-onnx-streaming-zipformer-en-2023-06-26/test_wavs/8k.wav
-
-(2) Streaming paraformer
-
-curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2
-tar xvf sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2
-rm sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2
-
-./python-api-examples/online-decode-files.py \
-  --tokens=./sherpa-onnx-streaming-paraformer-bilingual-zh-en/tokens.txt \
-  --paraformer-encoder=./sherpa-onnx-streaming-paraformer-bilingual-zh-en/encoder.int8.onnx \
-  --paraformer-decoder=./sherpa-onnx-streaming-paraformer-bilingual-zh-en/decoder.int8.onnx \
-  ./sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/0.wav \
-  ./sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/1.wav \
-  ./sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/2.wav \
-  ./sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/3.wav \
-  ./sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/8k.wav
-
-(3) Streaming Zipformer2 CTC
-
-wget https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13.tar.bz2
-tar xvf sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13.tar.bz2
-rm sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13.tar.bz2
-ls -lh sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13
-
-./python-api-examples/online-decode-files.py \
-  --zipformer2-ctc=./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/ctc-epoch-20-avg-1-chunk-16-left-128.onnx \
-  --tokens=./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/tokens.txt \
-  ./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/test_wavs/DEV_T0000000000.wav \
-  ./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/test_wavs/DEV_T0000000001.wav
-
-(4) Streaming Conformer CTC from WeNet
-
-curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-zh-wenet-wenetspeech.tar.bz2
-tar xvf sherpa-onnx-zh-wenet-wenetspeech.tar.bz2
-rm sherpa-onnx-zh-wenet-wenetspeech.tar.bz2
-
-./python-api-examples/online-decode-files.py \
-  --tokens=./sherpa-onnx-zh-wenet-wenetspeech/tokens.txt \
-  --wenet-ctc=./sherpa-onnx-zh-wenet-wenetspeech/model-streaming.onnx \
-  ./sherpa-onnx-zh-wenet-wenetspeech/test_wavs/0.wav \
-  ./sherpa-onnx-zh-wenet-wenetspeech/test_wavs/1.wav \
-  ./sherpa-onnx-zh-wenet-wenetspeech/test_wavs/8k.wav
-
+  --model=./path/to/model.onnx \
+  test1.wav \
+  tet2.wav
 
 Please refer to
-https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
+https://app.kroko.ai - Pro models
+https://huggingface.co/Banafo/Kroko-ASR - Free models
 to download streaming pre-trained models.
 """
 import argparse
@@ -91,7 +23,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
-import sherpa_onnx
+import kroko_onnx
 
 
 def get_args():
@@ -100,65 +32,23 @@ def get_args():
     )
 
     parser.add_argument(
-        "--tokens",
+        "--model",
         type=str,
-        help="Path to tokens.txt",
+        help="Path to the kroko model",
     )
 
     parser.add_argument(
-        "--encoder",
+        "--key",
         type=str,
-        help="Path to the transducer encoder model",
+        default="",
+        help="License key needed only for Pro models",
     )
 
     parser.add_argument(
-        "--decoder",
+        "--referralcode",
         type=str,
-        help="Path to the transducer decoder model",
-    )
-
-    parser.add_argument(
-        "--joiner",
-        type=str,
-        help="Path to the transducer joiner model",
-    )
-
-    parser.add_argument(
-        "--zipformer2-ctc",
-        type=str,
-        help="Path to the zipformer2 ctc model",
-    )
-
-    parser.add_argument(
-        "--paraformer-encoder",
-        type=str,
-        help="Path to the paraformer encoder model",
-    )
-
-    parser.add_argument(
-        "--paraformer-decoder",
-        type=str,
-        help="Path to the paraformer decoder model",
-    )
-
-    parser.add_argument(
-        "--wenet-ctc",
-        type=str,
-        help="Path to the wenet ctc model",
-    )
-
-    parser.add_argument(
-        "--wenet-ctc-chunk-size",
-        type=int,
-        default=16,
-        help="The --chunk-size parameter for streaming WeNet models",
-    )
-
-    parser.add_argument(
-        "--wenet-ctc-num-left-chunks",
-        type=int,
-        default=4,
-        help="The --num-left-chunks parameter for streaming WeNet models",
+        default="",
+        help="Project referral code - for future revenue sharing options. Contact us for info.",
     )
 
     parser.add_argument(
@@ -182,40 +72,6 @@ def get_args():
         help="""Used only when --decoding-method is modified_beam_search.
         It specifies number of active paths to keep during decoding.
         """,
-    )
-
-    parser.add_argument(
-        "--lm",
-        type=str,
-        default="",
-        help="""Used only when --decoding-method is modified_beam_search.
-        path of language model.
-        """,
-    )
-
-    parser.add_argument(
-        "--lm-scale",
-        type=float,
-        default=0.1,
-        help="""Used only when --decoding-method is modified_beam_search.
-        scale of language model.
-        """,
-    )
-
-    parser.add_argument(
-        "--lodr-fst",
-        metavar="file",
-        type=str,
-        default="",
-        help="Path to LODR FST model. Used only when --lm is given.",
-    )
-
-    parser.add_argument(
-        "--lodr-scale",
-        metavar="lodr_scale",
-        type=float,
-        default=-0.1,
-        help="LODR scale for rescoring.Used only when --lodr_fst is given.",
     )
 
     parser.add_argument(
@@ -243,28 +99,6 @@ def get_args():
         help="""
         The hotword score of each token for biasing word/phrase. Used only if
         --hotwords-file is given.
-        """,
-    )
-
-    parser.add_argument(
-        "--modeling-unit",
-        type=str,
-        default="",
-        help="""
-        The modeling unit of the model, valid values are cjkchar, bpe, cjkchar+bpe.
-        Used only when hotwords-file is given.
-        """,
-    )
-
-    parser.add_argument(
-        "--bpe-vocab",
-        type=str,
-        default="",
-        help="""
-        The path to the bpe vocabulary, the bpe vocabulary is generated by
-        sentencepiece, you can also export the bpe vocabulary through a bpe model
-        by `scripts/export_bpe_vocab.py`. Used only when hotwords-file is given
-        and modeling-unit is bpe or cjkchar+bpe.
         """,
     )
 
@@ -298,7 +132,7 @@ def assert_file_exists(filename: str):
     assert Path(filename).is_file(), (
         f"{filename} does not exist!\n"
         "Please refer to "
-        "https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html to download it"
+        "https://app.kroko.ai or https://huggingface.co/Banafo/Kroko-ASR to download it"
     )
 
 
@@ -329,69 +163,24 @@ def read_wave(wave_filename: str) -> Tuple[np.ndarray, int]:
 
 def main():
     args = get_args()
-    assert_file_exists(args.tokens)
 
-    if args.encoder:
-        assert_file_exists(args.encoder)
-        assert_file_exists(args.decoder)
-        assert_file_exists(args.joiner)
+    if args.model:
+        assert_file_exists(args.model)
 
-        assert not args.paraformer_encoder, args.paraformer_encoder
-        assert not args.paraformer_decoder, args.paraformer_decoder
-
-        recognizer = sherpa_onnx.OnlineRecognizer.from_transducer(
-            tokens=args.tokens,
-            encoder=args.encoder,
-            decoder=args.decoder,
-            joiner=args.joiner,
+        recognizer = kroko_onnx.OnlineRecognizer.from_transducer(
+            model_path=args.model,
+            key=args.key,
+            referralcode=args.referralcode,
             num_threads=args.num_threads,
             provider=args.provider,
             sample_rate=16000,
             feature_dim=80,
             decoding_method=args.decoding_method,
             max_active_paths=args.max_active_paths,
-            lm=args.lm,
-            lm_scale=args.lm_scale,
-            lodr_fst=args.lodr_fst,
-            lodr_scale=args.lodr_scale,
             hotwords_file=args.hotwords_file,
             hotwords_score=args.hotwords_score,
             modeling_unit=args.modeling_unit,
-            bpe_vocab=args.bpe_vocab,
             blank_penalty=args.blank_penalty,
-        )
-    elif args.zipformer2_ctc:
-        recognizer = sherpa_onnx.OnlineRecognizer.from_zipformer2_ctc(
-            tokens=args.tokens,
-            model=args.zipformer2_ctc,
-            num_threads=args.num_threads,
-            provider=args.provider,
-            sample_rate=16000,
-            feature_dim=80,
-            decoding_method="greedy_search",
-        )
-    elif args.paraformer_encoder:
-        recognizer = sherpa_onnx.OnlineRecognizer.from_paraformer(
-            tokens=args.tokens,
-            encoder=args.paraformer_encoder,
-            decoder=args.paraformer_decoder,
-            num_threads=args.num_threads,
-            provider=args.provider,
-            sample_rate=16000,
-            feature_dim=80,
-            decoding_method="greedy_search",
-        )
-    elif args.wenet_ctc:
-        recognizer = sherpa_onnx.OnlineRecognizer.from_wenet_ctc(
-            tokens=args.tokens,
-            model=args.wenet_ctc,
-            chunk_size=args.wenet_ctc_chunk_size,
-            num_left_chunks=args.wenet_ctc_num_left_chunks,
-            num_threads=args.num_threads,
-            provider=args.provider,
-            sample_rate=16000,
-            feature_dim=80,
-            decoding_method="greedy_search",
         )
     else:
         raise ValueError("Please provide a model")

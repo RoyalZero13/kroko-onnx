@@ -32,6 +32,7 @@
 #include "sherpa-onnx/csrc/session.h"
 #include "sherpa-onnx/csrc/text-utils.h"
 #include "sherpa-onnx/csrc/unbind.h"
+#include "sherpa-onnx/csrc/ModelData.h"
 
 namespace sherpa_onnx {
 
@@ -44,18 +45,33 @@ OnlineZipformer2TransducerModel::OnlineZipformer2TransducerModel(
       config_(config),
       allocator_{} {
   {
+#ifdef KROKO_MODEL
+    auto& model = ModelData::getInstance();
+    InitEncoder(model.encoder.data(), model.encoder.size());
+#else      
     auto buf = ReadFile(config.transducer.encoder);
     InitEncoder(buf.data(), buf.size());
+#endif
   }
 
   {
+#ifdef KROKO_MODEL      
+    auto& model = ModelData::getInstance();
+    InitDecoder(model.decoder.data(), model.decoder.size());
+#else
     auto buf = ReadFile(config.transducer.decoder);
     InitDecoder(buf.data(), buf.size());
+#endif
   }
 
   {
+#ifdef KROKO_MODEL      
+    auto& model = ModelData::getInstance();
+    InitJoiner(model.joiner.data(), model.joiner.size());
+#else
     auto buf = ReadFile(config.transducer.joiner);
     InitJoiner(buf.data(), buf.size());
+#endif
   }
 }
 

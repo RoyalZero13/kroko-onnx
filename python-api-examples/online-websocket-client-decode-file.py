@@ -3,7 +3,7 @@
 # Copyright (c)  2023  Xiaomi Corporation
 
 """
-A websocket client for sherpa-onnx-online-websocket-server
+A websocket client for kroko-onnx-online-websocket-server
 
 Usage:
     ./online-websocket-client-decode-file.py \

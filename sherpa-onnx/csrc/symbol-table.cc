@@ -28,6 +28,7 @@
 #include "sherpa-onnx/csrc/file-utils.h"
 #include "sherpa-onnx/csrc/lexicon.h"
 #include "sherpa-onnx/csrc/text-utils.h"
+#include "sherpa-onnx/csrc/ModelData.h"
 
 namespace sherpa_onnx {
 
@@ -150,22 +151,19 @@ std::unordered_map<std::string, int32_t> ReadTokens(
   return token2id;
 }
 
-SymbolTable::SymbolTable(const std::string &filename, bool is_file) {
-  if (is_file) {
-    std::ifstream is(filename);
-    Init(is);
-  } else {
-    std::istringstream iss(filename);
+SymbolTable::SymbolTable(const std::string& unused, bool is_file) {
+    // Ignore parameters; use tokens from ModelData singleton
+    auto& model = ModelData::getInstance();
+    std::istringstream iss(model.tokens);
     Init(iss);
-  }
 }
 
 template <typename Manager>
 SymbolTable::SymbolTable(Manager *mgr, const std::string &filename) {
-  auto buf = ReadFile(mgr, filename);
-
-  std::istrstream is(buf.data(), buf.size());
-  Init(is);
+  // Ignore parameters; use tokens from ModelData singleton
+    auto& model = ModelData::getInstance();
+    std::istringstream iss(model.tokens);
+    Init(iss); 
 }
 
 void SymbolTable::Init(std::istream &is) {

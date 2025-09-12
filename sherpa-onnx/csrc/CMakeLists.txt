@@ -1,5 +1,7 @@
 include_directories(${PROJECT_SOURCE_DIR})
 
+find_package(OpenSSL REQUIRED)
+
 if(SHERPA_ONNX_ENABLE_PYTHON)
   message(STATUS "PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
   execute_process(
@@ -8,6 +10,25 @@ if(SHERPA_ONNX_ENABLE_PYTHON)
     OUTPUT_VARIABLE PYTHON_VERSION
   )
   message(STATUS "PYTHON_VERSION: ${PYTHON_VERSION}")
+endif()
+
+option(KROKO_MODEL "Enable BANAFO model" ON)       # ON by default
+option(KROKO_LICENSE "Enable BANAFO license" OFF)  # OFF by default (or ON if needed)
+
+if(DEFINED ENV{KROKO_MODEL})
+    set(KROKO_MODEL $ENV{KROKO_MODEL})
+endif()
+
+if(DEFINED ENV{KROKO_LICENSE})
+    set(KROKO_LICENSE $ENV{KROKO_LICENSE})
+endif()
+
+if(KROKO_MODEL)
+    add_definitions(-DKROKO_MODEL=1)
+endif()
+
+if(KROKO_LICENSE)
+    add_definitions(-DKROKO_LICENSE=1)
 endif()
 
 set(sources
@@ -136,6 +157,7 @@ set(sources
   voice-activity-detector.cc
   wave-reader.cc
   wave-writer.cc
+  ModelData.cc
 )
 
 # speaker embedding extractor
@@ -234,20 +256,20 @@ if(SHERPA_ONNX_ENABLE_CHECK)
 endif()
 
 # Always static build
-add_library(sherpa-onnx-core STATIC ${sources})
+add_library(kroko-onnx-core STATIC ${sources})
 
 
 if(WIN32 AND SHERPA_ONNX_LINK_D3D)
-    target_link_libraries(sherpa-onnx-core dxguid.lib d3d12.lib dxgi.lib dxcore.lib)
+    target_link_libraries(kroko-onnx-core dxguid.lib d3d12.lib dxgi.lib dxcore.lib)
 endif()
 
 
 if(TARGET directml)
-    target_link_libraries(sherpa-onnx-core directml)
+    target_link_libraries(kroko-onnx-core directml)
 endif()
 
 set_target_properties(
-    sherpa-onnx-core
+    kroko-onnx-core
   PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     C_VISIBILITY_PRESET hidden
@@ -255,81 +277,83 @@ set_target_properties(
 )
 
 if(APPLE)
-  target_compile_options(sherpa-onnx-core PRIVATE
+  target_compile_options(kroko-onnx-core PRIVATE
     -Wno-deprecated-declarations
   )
 endif()
 
 if(ANDROID_NDK)
-  target_link_libraries(sherpa-onnx-core android log)
+  target_link_libraries(kroko-onnx-core android log)
 endif()
 
-target_link_libraries(sherpa-onnx-core
+target_link_libraries(kroko-onnx-core
   kaldi-native-fbank-core
   kaldi-decoder-core
   ssentencepiece_core
+  OpenSSL::SSL
+  OpenSSL::Crypto
 )
 if(DEFINED OHOS AND x${OHOS} STREQUAL xOHOS)
-  target_link_libraries(sherpa-onnx-core
+  target_link_libraries(kroko-onnx-core
     hilog_ndk.z
     rawfile.z
   )
 endif()
 
 if(SHERPA_ONNX_ENABLE_GPU)
-  target_link_libraries(sherpa-onnx-core
+  target_link_libraries(kroko-onnx-core
     onnxruntime_providers_shared
   )
 endif()
 
 if(SHERPA_ONNX_ENABLE_RKNN)
   if(DEFINED ENV{SHERPA_ONNX_RKNN_TOOLKIT2_LIB_DIR})
-    target_link_libraries(sherpa-onnx-core -L$ENV{SHERPA_ONNX_RKNN_TOOLKIT2_LIB_DIR} -lrknnrt)
+    target_link_libraries(kroko-onnx-core -L$ENV{SHERPA_ONNX_RKNN_TOOLKIT2_LIB_DIR} -lrknnrt)
   else()
-    target_link_libraries(sherpa-onnx-core rknnrt)
+    target_link_libraries(kroko-onnx-core rknnrt)
   endif()
 endif()
 
 if((BUILD_SHARED_LIBS OR SHERPA_ONNX_USE_PRE_INSTALLED_ONNXRUNTIME_IF_AVAILABLE) AND NOT DEFINED onnxruntime_lib_files)
-  target_link_libraries(sherpa-onnx-core onnxruntime)
+  target_link_libraries(kroko-onnx-core onnxruntime)
 else()
-  target_link_libraries(sherpa-onnx-core ${onnxruntime_lib_files})
+  target_link_libraries(kroko-onnx-core ${onnxruntime_lib_files})
 endif()
 
 if(NOT WIN32)
-  target_link_libraries(sherpa-onnx-core -lm)
+  target_link_libraries(kroko-onnx-core -lm)
 endif()
 
 if(NOT BUILD_SHARED_LIBS AND APPLE)
-  target_link_libraries(sherpa-onnx-core "-framework Foundation")
+  target_link_libraries(kroko-onnx-core "-framework Foundation")
 endif()
 
-target_link_libraries(sherpa-onnx-core fstfar fst)
+target_link_libraries(kroko-onnx-core fstfar fst)
 
 if(SHERPA_ONNX_ENABLE_TTS)
-  target_link_libraries(sherpa-onnx-core piper_phonemize)
+  target_link_libraries(kroko-onnx-core piper_phonemize)
 endif()
-target_link_libraries(sherpa-onnx-core cppjieba)
+target_link_libraries(kroko-onnx-core cppjieba)
 
 if(SHERPA_ONNX_ENABLE_CHECK)
-  target_compile_definitions(sherpa-onnx-core PUBLIC SHERPA_ONNX_ENABLE_CHECK=1)
+  target_compile_definitions(kroko-onnx-core PUBLIC SHERPA_ONNX_ENABLE_CHECK=1)
 
   if(SHERPA_ONNX_HAVE_EXECINFO_H)
-    target_compile_definitions(sherpa-onnx-core PRIVATE SHERPA_ONNX_HAVE_EXECINFO_H=1)
+    target_compile_definitions(kroko-onnx-core PRIVATE SHERPA_ONNX_HAVE_EXECINFO_H=1)
   endif()
 
   if(SHERPA_ONNX_HAVE_CXXABI_H)
-    target_compile_definitions(sherpa-onnx-core PRIVATE SHERPA_ONNX_HAVE_CXXABI_H=1)
+    target_compile_definitions(kroko-onnx-core PRIVATE SHERPA_ONNX_HAVE_CXXABI_H=1)
   endif()
 endif()
 
 if(NOT BUILD_SHARED_LIBS AND CMAKE_SYSTEM_NAME STREQUAL Linux)
   # This is for linux arm32 and arm64
-  target_link_libraries(sherpa-onnx-core -ldl)
+  target_link_libraries(kroko-onnx-core -ldl)
 endif()
 
 if(NOT WIN32 AND NOT SHERPA_ONNX_ENABLE_WASM AND CMAKE_SYSTEM_NAME STREQUAL Linux)
-  target_link_libraries(sherpa-onnx-core -pthread)
+  target_link_libraries(kroko-onnx-core -pthread)
 endif()
 
 if(SHERPA_ONNX_ENABLE_BINARY)
@@ -380,7 +404,7 @@ if(SHERPA_ONNX_ENABLE_BINARY)
   endif()
 
   foreach(exe IN LISTS main_exes)
-    target_link_libraries(${exe} sherpa-onnx-core)
+    target_link_libraries(${exe} kroko-onnx-core)
   endforeach()
 
   if(NOT WIN32)
@@ -396,7 +420,7 @@ if(SHERPA_ONNX_ENABLE_BINARY)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
-  install(TARGETS sherpa-onnx-core DESTINATION lib)
+  install(TARGETS kroko-onnx-core DESTINATION lib)
 endif()
 
 if(SHERPA_ONNX_ENABLE_BINARY)
@@ -443,7 +467,7 @@ if(SHERPA_ONNX_HAS_ALSA AND SHERPA_ONNX_ENABLE_BINARY)
   #   #  mismatch detected for 'RuntimeLibrary': value 'MT_StaticRelease' doesn't match value 'MD_Dynamic Release'
 
   foreach(exe IN LISTS exes)
-    target_link_libraries(${exe} sherpa-onnx-core)
+    target_link_libraries(${exe} kroko-onnx-core)
   endforeach()
 
   foreach(exe IN LISTS exes)
@@ -544,7 +568,7 @@ if(SHERPA_ONNX_ENABLE_PORTAUDIO AND SHERPA_ONNX_ENABLE_BINARY)
   endif()
 
   foreach(exe IN LISTS exes)
-    target_link_libraries(${exe} portaudio_static sherpa-onnx-core)
+    target_link_libraries(${exe} portaudio_static kroko-onnx-core)
   endforeach()
 
   if(NOT WIN32)
@@ -571,19 +595,19 @@ if(SHERPA_ONNX_ENABLE_WEBSOCKET AND SHERPA_ONNX_ENABLE_BINARY)
   add_definitions(-DASIO_STANDALONE)
   add_definitions(-D_WEBSOCKETPP_CPP11_STL_)
 
-  add_executable(sherpa-onnx-online-websocket-server
+  add_executable(kroko-onnx-online-websocket-server
     online-websocket-server-impl.cc
     online-websocket-server.cc
   )
-  target_link_libraries(sherpa-onnx-online-websocket-server sherpa-onnx-core)
+  target_link_libraries(kroko-onnx-online-websocket-server kroko-onnx-core)
 
   add_executable(sherpa-onnx-online-websocket-client
     online-websocket-client.cc
   )
-  target_link_libraries(sherpa-onnx-online-websocket-client sherpa-onnx-core)
+  target_link_libraries(sherpa-onnx-online-websocket-client kroko-onnx-core)
 
   if(NOT WIN32)
-    target_compile_options(sherpa-onnx-online-websocket-server PRIVATE -Wno-deprecated-declarations)
+    target_compile_options(kroko-onnx-online-websocket-server PRIVATE -Wno-deprecated-declarations)
 
     target_compile_options(sherpa-onnx-online-websocket-client PRIVATE -Wno-deprecated-declarations)
   endif()
@@ -593,15 +617,15 @@ if(SHERPA_ONNX_ENABLE_WEBSOCKET AND SHERPA_ONNX_ENABLE_BINARY)
     offline-websocket-server-impl.cc
     offline-websocket-server.cc
   )
-  target_link_libraries(sherpa-onnx-offline-websocket-server sherpa-onnx-core)
+  target_link_libraries(sherpa-onnx-offline-websocket-server kroko-onnx-core)
 
   if(NOT WIN32)
     target_compile_options(sherpa-onnx-offline-websocket-server PRIVATE -Wno-deprecated-declarations)
   endif()
 
   if(NOT WIN32)
-    target_link_libraries(sherpa-onnx-online-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../lib")
-    target_link_libraries(sherpa-onnx-online-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../../../sherpa_onnx/lib")
+    target_link_libraries(kroko-onnx-online-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../lib")
+    target_link_libraries(kroko-onnx-online-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../../../sherpa_onnx/lib")
 
     target_link_libraries(sherpa-onnx-online-websocket-client "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../lib")
     target_link_libraries(sherpa-onnx-online-websocket-client "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../../../sherpa_onnx/lib")
@@ -610,7 +634,7 @@ if(SHERPA_ONNX_ENABLE_WEBSOCKET AND SHERPA_ONNX_ENABLE_BINARY)
     target_link_libraries(sherpa-onnx-offline-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../../../sherpa_onnx/lib")
 
     if(SHERPA_ONNX_ENABLE_PYTHON AND NOT WIN32)
-      target_link_libraries(sherpa-onnx-online-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../lib/python${PYTHON_VERSION}/site-packages/sherpa_onnx/lib")
+      target_link_libraries(kroko-onnx-online-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../lib/python${PYTHON_VERSION}/site-packages/sherpa_onnx/lib")
       target_link_libraries(sherpa-onnx-online-websocket-client "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../lib/python${PYTHON_VERSION}/site-packages/sherpa_onnx/lib")
       target_link_libraries(sherpa-onnx-offline-websocket-server "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/../lib/python${PYTHON_VERSION}/site-packages/sherpa_onnx/lib")
     endif()
@@ -618,7 +642,7 @@ if(SHERPA_ONNX_ENABLE_WEBSOCKET AND SHERPA_ONNX_ENABLE_BINARY)
 
   install(
     TARGETS
-      sherpa-onnx-online-websocket-server
+      kroko-onnx-online-websocket-server
       sherpa-onnx-online-websocket-client
       sherpa-onnx-offline-websocket-server
     DESTINATION
@@ -668,7 +692,7 @@ if(SHERPA_ONNX_ENABLE_TESTS)
       PRIVATE
         gtest
         gtest_main
-        sherpa-onnx-core
+        kroko-onnx-core
     )
 
     add_test(NAME "${target_name}"

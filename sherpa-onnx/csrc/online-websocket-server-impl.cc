@@ -84,6 +84,9 @@ void OnlineWebsocketDecoder::InputFinished(std::shared_ptr<Connection> c) {
     const auto &s = c->samples.front();
     c->s->AcceptWaveform(sample_rate, s.data(), s.size());
     c->samples.pop_front();
+#ifdef KROKO_LICENSE    
+    total_duration += static_cast<int64_t>(static_cast<double>(s.size()) / sample_rate * 1000);
+#endif    
   }
 
   std::vector<float> tail_padding(
@@ -293,21 +296,51 @@ void OnlineWebsocketServer::Send(connection_hdl hdl, const std::string &text) {
 
 void OnlineWebsocketServer::OnOpen(connection_hdl hdl) {
   std::lock_guard<std::mutex> lock(mutex_);
-  connections_.insert(hdl);
-
-  std::ostringstream os;
-  os << "New connection: "
-     << server_.get_con_from_hdl(hdl)->get_remote_endpoint() << ". "
-     << "Number of active connections: " << connections_.size() << ".\n";
-  SHERPA_ONNX_LOG(INFO) << os.str();
+  websocketpp::lib::error_code ec;
+#ifdef KROKO_LICENSE
+  if(num_max_connections > 0 && total_connections >= num_max_connections) {
+    server_.close(hdl, 503, "", ec);
+    return;
+  }
+  auto result = connections_.insert(hdl);
+  if (result.second) {
+    total_connections++;
+  }
+#endif
+  try {
+    int retries = 5;
+    while (retries-- > 0) {
+      try {
+        std::ostringstream os;
+        os << "New connection: "
+          << server_.get_con_from_hdl(hdl)->get_remote_endpoint() << ". "
+          << "Number of active connections: " << connections_.size() << ".\n";
+        SHERPA_ONNX_LOG(INFO) << os.str();
+        return;
+      }
+      catch(...) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    }
+    server_.close(hdl, 503, "", ec);
+  } catch(...) {
+    server_.close(hdl, 503, "", ec);
+  }
 }
 
 void OnlineWebsocketServer::OnClose(connection_hdl hdl) {
   std::lock_guard<std::mutex> lock(mutex_);
-  connections_.erase(hdl);
+  try {
+#ifdef KROKO_LICENSE    
+    size_t erased = connections_.erase(hdl);
+    if (erased > 0) {
+      total_connections--;
+    }
+#endif    
 
-  SHERPA_ONNX_LOG(INFO) << "Number of active connections: "
-                        << connections_.size() << "\n";
+    SHERPA_ONNX_LOG(INFO) << "Number of active connections: "
+                          << connections_.size() << "\n";
+  } catch(...) {}
 }
 
 bool OnlineWebsocketServer::Contains(connection_hdl hdl) const {
@@ -317,9 +350,17 @@ bool OnlineWebsocketServer::Contains(connection_hdl hdl) const {
 
 void OnlineWebsocketServer::OnMessage(connection_hdl hdl,
                                       server::message_ptr msg) {
+try {                                        
   auto c = decoder_.GetOrCreateConnection(hdl);
 
   const std::string &payload = msg->get_payload();
+
+#ifdef KROKO_LICENSE
+  if(!license_status) {
+    asio::post(io_work_, [this, c]() { decoder_.InputFinished(c); });
+    return;
+  }
+#endif
 
   switch (msg->get_opcode()) {
     case websocketpp::frame::opcode::text:
@@ -331,6 +372,9 @@ void OnlineWebsocketServer::OnMessage(connection_hdl hdl,
       auto p = reinterpret_cast<const float *>(payload.data());
       int32_t num_samples = payload.size() / sizeof(float);
       std::vector<float> samples(p, p + num_samples);
+#ifdef KROKO_LICENSE
+      total_duration += static_cast<int64_t>(static_cast<double>(num_samples) / 16000 * 1000);
+#endif      
 
       {
         std::lock_guard<std::mutex> lock(c->mutex);
@@ -343,16 +387,23 @@ void OnlineWebsocketServer::OnMessage(connection_hdl hdl,
     default:
       break;
   }
+} catch(...) {
+  websocketpp::lib::error_code ec;
+  server_.close(hdl, 503, "", ec);
+}
 }
 
 void OnlineWebsocketServer::Close(connection_hdl hdl,
                                   websocketpp::close::status::value code,
                                   const std::string &reason) {
+try {
   auto con = server_.get_con_from_hdl(hdl);
 
   std::ostringstream os;
-  os << "Closing " << con->get_remote_endpoint() << " with reason: " << reason
-     << "\n";
+  try {
+    os << "Closing " << con->get_remote_endpoint() << " with reason: " << reason
+      << "\n";
+  } catch(...) {}
 
   websocketpp::lib::error_code ec;
   server_.close(hdl, code, reason, ec);
@@ -361,6 +412,7 @@ void OnlineWebsocketServer::Close(connection_hdl hdl,
        << ec.message() << "\n";
   }
   server_.get_alog().write(websocketpp::log::alevel::app, os.str());
+} catch(...) {}
 }
 
 }  // namespace sherpa_onnx

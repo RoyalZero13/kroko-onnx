@@ -124,7 +124,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_FLAGS}")
 set(CMAKE_EXECUTABLE_LINKER_FLAGS "${CMAKE_EXECUTABLE_LINKER_FLAGS} ${MY_FLAGS}")
 
 add_executable(sherpa-onnx-wasm-nodejs sherpa-onnx-wasm-nodejs.cc)
-target_link_libraries(sherpa-onnx-wasm-nodejs sherpa-onnx-core sherpa-onnx-c-api)
+target_link_libraries(sherpa-onnx-wasm-nodejs kroko-onnx-core sherpa-onnx-c-api)
 install(TARGETS sherpa-onnx-wasm-nodejs DESTINATION bin/wasm/nodejs)
 
 install(

@@ -41,10 +41,6 @@ class OnlineRecognizer(object):
     @classmethod
     def from_transducer(
         cls,
-        tokens: str,
-        encoder: str,
-        decoder: str,
-        joiner: str,
         num_threads: int = 2,
         sample_rate: float = 16000,
         feature_dim: int = 80,
@@ -91,6 +87,9 @@ class OnlineRecognizer(object):
         hr_lexicon: str = "",
         lodr_fst: str = "",
         lodr_scale: float = 0.0,
+        model_path: str = "",
+        key: str = "",
+        referralcode: str = "",
     ):
         """
         Please refer to
@@ -105,12 +104,6 @@ class OnlineRecognizer(object):
 
                 symbol integer_id
 
-          encoder:
-            Path to ``encoder.onnx``.
-          decoder:
-            Path to ``decoder.onnx``.
-          joiner:
-            Path to ``joiner.onnx``.
           num_threads:
             Number of threads for neural network computation.
           sample_rate:
@@ -224,17 +217,12 @@ class OnlineRecognizer(object):
             Scale factor for LODR rescoring. Only used when lodr_fst is provided.
         """
         self = cls.__new__(cls)
-        _assert_file_exists(tokens)
-        _assert_file_exists(encoder)
-        _assert_file_exists(decoder)
-        _assert_file_exists(joiner)
-
         assert num_threads > 0, num_threads
 
         transducer_config = OnlineTransducerModelConfig(
-            encoder=encoder,
-            decoder=decoder,
-            joiner=joiner,
+            encoder="",
+            decoder="",
+            joiner="",
         )
 
         cuda_config = CudaConfig(
@@ -263,13 +251,16 @@ class OnlineRecognizer(object):
 
         model_config = OnlineModelConfig(
             transducer=transducer_config,
-            tokens=tokens,
             num_threads=num_threads,
             provider_config=provider_config,
             model_type=model_type,
             modeling_unit=modeling_unit,
             bpe_vocab=bpe_vocab,
             debug=debug,
+            model_path=model_path,
+            key=key,
+            referralcode=referralcode,
+            tokens="",
         )
 
         feat_config = FeatureExtractorConfig(

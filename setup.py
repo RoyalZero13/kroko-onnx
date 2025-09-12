@@ -38,7 +38,7 @@ def get_package_version():
     return latest_version
 
 
-package_name = "sherpa-onnx"
+package_name = "kroko-onnx"
 
 with open("sherpa-onnx/python/sherpa_onnx/__init__.py", "a") as f:
     f.write(f"__version__ = '{get_package_version()}'\n")
@@ -67,14 +67,14 @@ setuptools.setup(
     name=package_name,
     python_requires=">=3.6",
     version=get_package_version(),
-    author="The sherpa-onnx development team",
-    author_email="dpovey@gmail.com",
+    author="The Kroko AI team",
+    author_email="yello@banafo.comm",
     package_dir={
-        "sherpa_onnx": "sherpa-onnx/python/sherpa_onnx",
+        "kroko_onnx": "sherpa-onnx/python/sherpa_onnx",
     },
-    packages=["sherpa_onnx"],
+    packages=["kroko_onnx"],
     data_files=[("bin", get_binaries_to_install())] if get_binaries_to_install() else None,
-    url="https://github.com/k2-fsa/sherpa-onnx",
+    url="https://github.com/kroko-ai",
     long_description=read_long_description(),
     long_description_content_type="text/markdown",
     ext_modules=[cmake_extension("_sherpa_onnx")],

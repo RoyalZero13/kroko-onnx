@@ -658,7 +658,7 @@ const
   {$elseif not defined(SHERPA_ONNX_USE_SHARED_LIBS)}
      {static link for linux and macos}
      {$linklib sherpa-onnx-c-api}
-     {$linklib sherpa-onnx-core}
+     {$linklib kroko-onnx-core}
      {$linklib kaldi-decoder-core}
      {$linklib sherpa-onnx-kaldifst-core}
      {$linklib sherpa-onnx-fstfar}

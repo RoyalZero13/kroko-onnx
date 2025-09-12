@@ -8,7 +8,7 @@
     <SherpaOnnxLibraries>
         sherpa-onnx-portaudio_static.lib;
         sherpa-onnx-c-api.lib;
-        sherpa-onnx-core.lib;
+        kroko-onnx-core.lib;
         kaldi-decoder-core.lib;
         sherpa-onnx-kaldifst-core.lib;
         sherpa-onnx-fstfar.lib;

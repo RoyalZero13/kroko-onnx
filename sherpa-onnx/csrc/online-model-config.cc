@@ -11,6 +11,34 @@
 
 namespace sherpa_onnx {
 
+const char* banafo_help = R"(
+  
+Thank you for using Kroko! 🎉
+
+This project is open source and can be freely used under the open source license.
+For users who need commercial features, support, or access to paid models, we also offer a commercial license.
+
+🔑 Getting a Trial License
+
+Go to https://app.kroko.ai/
+Register or Log in to your account.
+In the sidebar, click On-premise.
+Click the GET trial button.
+You will receive a license key.
+Once you have the key, run the executable with the activation command:
+
+./my-executable activate --key YOUR_LICENSE_KEY
+
+📦 Downloading Paid Models
+
+Paid models are available only for commercial license users.
+You can download them from:
+
+👉 https://app.kroko.ai/on-premise
+
+After downloading, place the models in the appropriate directory (for example: models/).
+)";
+
 void OnlineModelConfig::Register(ParseOptions *po) {
   transducer.Register(po);
   paraformer.Register(po);
@@ -19,14 +47,16 @@ void OnlineModelConfig::Register(ParseOptions *po) {
   nemo_ctc.Register(po);
   provider_config.Register(po);
 
+#ifndef KROKO_MODEL
   po->Register("tokens", &tokens, "Path to tokens.txt");
+#endif  
 
   po->Register("num-threads", &num_threads,
                "Number of threads to run the neural network");
 
   po->Register("warm-up", &warm_up,
                "Number of warm-up to run the onnxruntime"
-               "Valid vales are: zipformer2");
+               "Valid vales are: 0-99");
 
   po->Register("debug", &debug,
                "true to print model information while loading it.");
@@ -44,11 +74,20 @@ void OnlineModelConfig::Register(ParseOptions *po) {
                "your bpe model is generated. Only used when hotwords provided "
                "and the modeling unit is bpe or cjkchar+bpe");
 
+#ifndef KROKO_MODEL
   po->Register("model-type", &model_type,
                "Specify it to reduce model initialization time. "
                "Valid values are: conformer, lstm, zipformer, zipformer2, "
                "wenet_ctc, nemo_ctc. "
                "All other values lead to loading the model twice.");
+#else
+  po->Register("model", &model_path, "The path to the model file.");
+#endif
+
+#ifdef KROKO_LICENSE
+  po->Register("key", &key, "The account license key.");
+  po->Register("referral-code", &referralcode, "Referral code.");
+#endif
 }
 
 bool OnlineModelConfig::Validate() const {
@@ -109,6 +148,7 @@ bool OnlineModelConfig::Validate() const {
     }
   }
 
+#ifndef KROKO_MODEL
   if (!tokens_buf.empty() && FileExists(tokens)) {
     SHERPA_ONNX_LOGE(
         "you can not provide a tokens_buf and a tokens file: '%s', "
@@ -124,6 +164,15 @@ bool OnlineModelConfig::Validate() const {
         tokens.c_str());
     return false;
   }
+#else
+  if (model_path.empty() && !FileExists(model_path)) {
+    SHERPA_ONNX_LOGE(
+        "model_path: '%s' does not exist, you should provide "
+        "path to a model file.%s",
+        model_path.c_str(), banafo_help);
+    return false;
+  }
+#endif
 
   if (!modeling_unit.empty() &&
       (modeling_unit == "bpe" || modeling_unit == "cjkchar+bpe")) {

@@ -14,4 +14,4 @@ include_directories(./sherpa-onnx)
 add_subdirectory(./sherpa-onnx)
 
 add_executable(main main.cc)
-target_link_libraries(main sherpa-onnx-core)
+target_link_libraries(main kroko-onnx-core)

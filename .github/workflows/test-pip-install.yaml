@@ -129,5 +129,5 @@ jobs:
 
           sherpa-onnx-offline-websocket-server --help
 
-          sherpa-onnx-online-websocket-server --help
+          kroko-onnx-online-websocket-server --help
           sherpa-onnx-online-websocket-client --help

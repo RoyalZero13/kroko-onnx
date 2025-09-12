@@ -24,8 +24,11 @@ struct OnlineModelConfig {
   ProviderConfig provider_config;
   std::string tokens;
   int32_t num_threads = 1;
-  int32_t warm_up = 0;
+  int32_t warm_up = 99;
   bool debug = false;
+  std::string key;
+  std::string model_path;
+  std::string referralcode = "";
 
   // Valid values:
   //  - conformer, conformer transducer from icefall
@@ -36,7 +39,7 @@ struct OnlineModelConfig {
   //  - nemo_ctc, NeMo CTC model
   //
   // All other values are invalid and lead to loading the model twice.
-  std::string model_type;
+  std::string model_type = "zipformer2";
 
   // Valid values:
   //  - cjkchar
@@ -60,7 +63,11 @@ struct OnlineModelConfig {
                     const std::string &tokens, int32_t num_threads,
                     int32_t warm_up, bool debug, const std::string &model_type,
                     const std::string &modeling_unit,
-                    const std::string &bpe_vocab)
+                    const std::string &bpe_vocab,
+                    const std::string &model_path = "",
+                    const std::string &key = "",
+                    const std::string referralcode = ""
+                    )
       : transducer(transducer),
         paraformer(paraformer),
         wenet_ctc(wenet_ctc),
@@ -73,7 +80,10 @@ struct OnlineModelConfig {
         debug(debug),
         model_type(model_type),
         modeling_unit(modeling_unit),
-        bpe_vocab(bpe_vocab) {}
+        bpe_vocab(bpe_vocab),
+        model_path(model_path),
+        key(key),
+        referralcode(referralcode) {}
 
   void Register(ParseOptions *po);
   bool Validate() const;

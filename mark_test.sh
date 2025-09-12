@@ -1,0 +1,1 @@
+sed -i 's/option(SHERPA_ONNX_ENABLE_GPU "Enable ONNX Runtime GPU support" OFF)/option(SHERPA_ONNX_ENABLE_GPU "Enable ONNX Runtime GPU support" ON)/' CMakeLists.txt &&     export MAKEFLAGS="-j50" && export CMAKE_ARGS="-DSHERPA_ONNX_ENABLE_GPU=ON" &&     pip3 install .

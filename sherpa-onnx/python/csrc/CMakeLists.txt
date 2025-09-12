@@ -104,7 +104,7 @@ if(NOT WIN32)
   target_link_libraries(_sherpa_onnx PRIVATE "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/sherpa_onnx/lib")
 endif()
 
-target_link_libraries(_sherpa_onnx PRIVATE sherpa-onnx-core)
+target_link_libraries(_sherpa_onnx PRIVATE kroko-onnx-core)
 
 if(SHERPA_ONNX_HAS_ALSA)
   if(DEFINED ENV{SHERPA_ONNX_ALSA_LIB_DIR})

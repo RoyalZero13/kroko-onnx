@@ -11,12 +11,15 @@
 namespace sherpa_onnx {
 
 void OnlineTransducerModelConfig::Register(ParseOptions *po) {
+#ifndef KROKO_MODEL
   po->Register("encoder", &encoder, "Path to encoder.onnx");
   po->Register("decoder", &decoder, "Path to decoder.onnx");
   po->Register("joiner", &joiner, "Path to joiner.onnx");
+#endif  
 }
 
 bool OnlineTransducerModelConfig::Validate() const {
+#ifndef KROKO_MODEL
   if (!FileExists(encoder)) {
     SHERPA_ONNX_LOGE("transducer encoder: '%s' does not exist",
                      encoder.c_str());
@@ -33,7 +36,7 @@ bool OnlineTransducerModelConfig::Validate() const {
     SHERPA_ONNX_LOGE("joiner: '%s' does not exist", joiner.c_str());
     return false;
   }
-
+#endif
   return true;
 }
 
