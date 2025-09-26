@@ -179,7 +179,6 @@ def main():
             max_active_paths=args.max_active_paths,
             hotwords_file=args.hotwords_file,
             hotwords_score=args.hotwords_score,
-            modeling_unit=args.modeling_unit,
             blank_penalty=args.blank_penalty,
         )
     else:

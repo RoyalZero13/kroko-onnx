@@ -63,6 +63,10 @@ cmake -DCMAKE_BUILD_TYPE=Release -DKROKO_LICENSE=ON ..
 make -j6
 ```
 
+> ⚠️ **IMPORTANT:** If you build with the license option enabled (`-DKROKO_LICENSE=ON`), and later want to switch back to a license-free build,  
+> you **must delete the `build/` directory** first, or explicitly rerun `cmake` with `-DKROKO_LICENSE=OFF` to clear the CMake cache.  
+> Otherwise, the license configuration may persist in the build.
+
 After building, you will find the executable `kroko-onnx-online-websocket-server` inside the `bin` directory.
 
 > For GPU builds, refer to:  
@@ -223,8 +227,7 @@ recognizer = kroko_onnx.OnlineRecognizer.from_transducer(
     num_threads=1,
     provider="cpu",
     sample_rate=16000,
-    decoding_method="greedy_search",
-    modeling_unit=None,
+    decoding_method="modified_beam_search",
     blank_penalty=0.0,
     enable_endpoint_detection=True,
     rule1_min_trailing_silence=2.4,

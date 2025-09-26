@@ -115,16 +115,13 @@ def create_recognizer(args):
         model_path=args.model,
         key=args.key,
         referralcode=args.referralcode,
-        num_threads=args.num_threads,
         provider=args.provider,
         sample_rate=16000,
         feature_dim=80,
         decoding_method=args.decoding_method,
-        max_active_paths=args.max_active_paths,
         hotwords_file=args.hotwords_file,
         hotwords_score=args.hotwords_score,
         modeling_unit=args.modeling_unit,
-        blank_penalty=args.blank_penalty,
     )
     return recognizer
 
