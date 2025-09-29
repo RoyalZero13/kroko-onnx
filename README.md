@@ -77,7 +77,7 @@ After building, you will find the executable `kroko-onnx-online-websocket-server
 ### Docker
 
 ```bash
-git clone https://github.com/orgs/kroko-ai/kroko-onnx
+git clone https://github.com/kroko-ai/kroko-onnx.git
 cd kroko-onnx
 
 # For Kroko free models
@@ -94,7 +94,7 @@ After building, you will find the executable `kroko-onnx-online-websocket-server
 ### Python
 
 ```bash
-git clone https://github.com/orgs/kroko-ai/kroko-onnx
+git clone https://github.com/kroko-ai/kroko-onnx
 cd kroko-onnx
 
 # For Kroko free models
