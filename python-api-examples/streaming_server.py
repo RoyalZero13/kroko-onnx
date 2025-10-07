@@ -16,10 +16,7 @@ Example:
 (1) Without a certificate
 
 python3 ./python-api-examples/streaming_server.py \
-  --encoder ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/encoder-epoch-99-avg-1.onnx \
-  --decoder ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/decoder-epoch-99-avg-1.onnx \
-  --joiner ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/joiner-epoch-99-avg-1.onnx \
-  --tokens ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/tokens.txt
+  --model ./path/to/model.onnx
 
 (2) With a certificate
 
@@ -32,10 +29,7 @@ python3 ./python-api-examples/streaming_server.py \
 (b) Start the server
 
 python3 ./python-api-examples/streaming_server.py \
-  --encoder ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/encoder-epoch-99-avg-1.onnx \
-  --decoder ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/decoder-epoch-99-avg-1.onnx \
-  --joiner ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/joiner-epoch-99-avg-1.onnx \
-  --tokens ./sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/tokens.txt \
+  --model ./path/to/model.onnx \
   --certificate ./python-api-examples/web/cert.pem
 
 Please refer to
@@ -43,14 +37,11 @@ https://app.kroko.ai - Pro models
 https://huggingface.co/Banafo/Kroko-ASR - Free models
 to download pre-trained models
 
-The model in the above help messages is from
-https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-transducer/zipformer-transducer-models.html#csukuangfj-sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20-bilingual-chinese-english
+(3) Decode file with the CLI Client Example
 
-To use a WeNet streaming Conformer CTC model, please use
+cd python-api-examples
+python3 online-websocket-client-decode-file.py sample.wav
 
-python3 ./python-api-examples/streaming_server.py \
-  --tokens=./sherpa-onnx-zh-wenet-wenetspeech/tokens.txt \
-  --wenet-ctc=./sherpa-onnx-zh-wenet-wenetspeech/model-streaming.onnx
 """
 
 import argparse
@@ -353,7 +344,7 @@ def get_args():
 
 
 def create_recognizer(args) -> kroko_onnx.OnlineRecognizer:
-    if args.encoder:
+    if args.model:
         recognizer = kroko_onnx.OnlineRecognizer.from_transducer(
             model_path=args.model,
             key=args.key,
@@ -363,10 +354,8 @@ def create_recognizer(args) -> kroko_onnx.OnlineRecognizer:
             sample_rate=args.sample_rate,
             feature_dim=80,
             decoding_method=args.decoding_method,
-            max_active_paths=args.max_active_paths,
             hotwords_file=args.hotwords_file,
             hotwords_score=args.hotwords_score,
-            modeling_unit=args.modeling_unit,
             blank_penalty=args.blank_penalty,
             enable_endpoint_detection=args.use_endpoint != 0,
             rule1_min_trailing_silence=args.rule1_min_trailing_silence,
@@ -697,36 +686,12 @@ Go back to <a href="/streaming_record.html">/streaming_record.html</a>
 
 
 def check_args(args):
-    if args.encoder:
-        assert Path(args.encoder).is_file(), f"{args.encoder} does not exist"
-
-        assert Path(args.decoder).is_file(), f"{args.decoder} does not exist"
-
-        assert Path(args.joiner).is_file(), f"{args.joiner} does not exist"
-
-        assert args.paraformer_encoder is None, args.paraformer_encoder
-        assert args.paraformer_decoder is None, args.paraformer_decoder
-        assert args.zipformer2_ctc is None, args.zipformer2_ctc
-        assert args.wenet_ctc is None, args.wenet_ctc
-    elif args.paraformer_encoder:
+    if args.model:
         assert Path(
-            args.paraformer_encoder
-        ).is_file(), f"{args.paraformer_encoder} does not exist"
-
-        assert Path(
-            args.paraformer_decoder
-        ).is_file(), f"{args.paraformer_decoder} does not exist"
-    elif args.zipformer2_ctc:
-        assert Path(
-            args.zipformer2_ctc
-        ).is_file(), f"{args.zipformer2_ctc} does not exist"
-    elif args.wenet_ctc:
-        assert Path(args.wenet_ctc).is_file(), f"{args.wenet_ctc} does not exist"
+            args.model
+        ).is_file(), f"{args.model} does not exist"
     else:
         raise ValueError("Please provide a model")
-
-    if not Path(args.tokens).is_file():
-        raise ValueError(f"{args.tokens} does not exist")
 
     if args.decoding_method not in (
         "greedy_search",
